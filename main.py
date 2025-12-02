@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Tile import Tile
 from Pixel import Pixel
+from animation_generator import simulate_solve_puzzle, generate_puzzle_animation
 
 font = cv2.FONT_HERSHEY_COMPLEX
 
@@ -57,6 +58,7 @@ if __name__ == '__main__':
                 numOfTiles += 1
                 # make into 1d array
                 n = approx.ravel()
+                # print(n)
                 coordinates = []
                 i = 0
                 for j in n:
@@ -66,7 +68,7 @@ if __name__ == '__main__':
                         coordinates.append((x,y))
                         coord = f"({x}, {y})"
                         cv2.putText(img, coord, (x, y), font, 0.4, (0, 255, 0))
-                        print("tile ", numOfTiles, " corner coordinate: ", coord)
+                        # print("tile ", numOfTiles, " corner coordinate: ", coord)
                     i += 1
                 # for all pixels in the edge print the coordinates
                 pixels = []
@@ -76,12 +78,21 @@ if __name__ == '__main__':
                     pixel = Pixel(x, y, color[0], color[1], color[2])
                     pixels.append(pixel)
                     pix = f" edge pixels coordinates: ({x}, {y})"
-                    print("tile ", numOfTiles, pix)
+                    # print("tile ", numOfTiles, pix)
                 tiles.append(Tile(coordinates, pixels)) # list of all tiles with their coordinates and edges
 
         print('Number of tiles found: ', numOfTiles)
-        cv2.imshow('image', img)
-        # press q to quite the picture and go through next one
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('image', img)
+        # # press q to quite the picture and go through next one
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        # Animation part
+        simulate_solve_puzzle(tiles, img)  # TODO: this function needs to be rewrite
+
+        output_name = os.path.splitext(image)[0] + "_solution.gif"
+        output_path = "outputs/"+output_name
+        os.makedirs("outputs", exist_ok=True)
+        print(output_name)
+        generate_puzzle_animation(tiles, img, output_filename=output_path)
 
