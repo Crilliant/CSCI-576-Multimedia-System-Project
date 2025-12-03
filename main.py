@@ -44,7 +44,8 @@ if __name__ == '__main__':
         _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
 
         # find all shapes & edges
-        contours, _ = cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
         tiles = []
         numOfTiles = 0
         # loop through all edges for all shapes
@@ -52,20 +53,23 @@ if __name__ == '__main__':
             # approximate borders
             approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
             sides = len(approx)
-            # if it iss a square or rectangle draw the borders and print corner coordinates
+            # if it is a square or rectangle draw the borders and print corner coordinates
             if sides == 4:
-                cv2.drawContours(img, [contour], 0, (255, 255, 255), 1)
-                numOfTiles += 1
                 # make into 1d array
                 n = approx.ravel()
-                # print(n)
+                cv2.drawContours(img, [contour], 0, (255, 255, 255), 2)
+                numOfTiles += 1
+                # print(f"tile {numOfTiles}:{n}")
                 coordinates = []
                 i = 0
+                cv2.putText(img, f"Tile {numOfTiles}", (n[0], n[1] + 20),
+                            font, 0.4, (0, 255, 255))
+
                 for j in n:
                     if i % 2 == 0:
                         # represent corner coordinates
                         x, y = n[i], n[i + 1]
-                        coordinates.append((x,y))
+                        coordinates.append((x, y))
                         coord = f"({x}, {y})"
                         cv2.putText(img, coord, (x, y), font, 0.4, (0, 255, 0))
                         # print("tile ", numOfTiles, " corner coordinate: ", coord)
@@ -74,7 +78,7 @@ if __name__ == '__main__':
                 pixels = []
                 for p in contour:
                     x, y = p[0]
-                    color = img[y,x]
+                    color = img[y, x]
                     pixel = Pixel(x, y, color[0], color[1], color[2])
                     pixels.append(pixel)
                     pix = f" edge pixels coordinates: ({x}, {y})"
@@ -87,12 +91,12 @@ if __name__ == '__main__':
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
 
-        # Animation part
+        # =======Image Matching===========
         simulate_solve_puzzle(tiles, img)  # TODO: this function needs to be rewrite
 
+        # =======Animation Generation=======
         output_name = os.path.splitext(image)[0] + "_solution.gif"
         output_path = "outputs/"+output_name
         os.makedirs("outputs", exist_ok=True)
         print(output_name)
         generate_puzzle_animation(tiles, img, output_filename=output_path)
-

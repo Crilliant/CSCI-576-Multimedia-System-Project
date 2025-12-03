@@ -38,7 +38,7 @@ def generate_puzzle_animation(
         print("Error: No cropped images available for animation. Ensure extracted_img is set in simulate_solve_puzzle.")
         return
 
-    print(f"Starting animation generation with {frame_count} frames...")
+    # print(f"Starting animation generation with {frame_count} frames...")
 
     for f in range(1, frame_count + 1):
         # Calculate interpolation factor, from 0 to 1
@@ -155,7 +155,7 @@ def simulate_solve_puzzle(tiles: List[Tile], original_img: np.ndarray) -> None:
 
         # Initial angle: simulate random rotation (0, 90, 180, 270)
         # Assuming the corner order extracted by the teammate's code, we set a random initial rotation here
-        tile.initial_rotation = np.random.choice([0, 90, 180, 270])
+        tile.initial_rotation = 0
 
         # ----------------------------------------------------
         # III. Crop Tile Image (for animation use)
@@ -170,3 +170,20 @@ def simulate_solve_puzzle(tiles: List[Tile], original_img: np.ndarray) -> None:
 
         # Crop the image (Note: y-axis first, then x-axis)
         tile.extracted_img = original_img[y_min:y_max, x_min:x_max].copy()
+        # # Draw Bounding Box on the display image
+        # color = (255, 0, 0)  # Blue color for the box
+        # thickness = 2
+        # cv2.rectangle(display_img, (x_min, y_min), (x_max, y_max), color, thickness)
+        #
+        # # Add a tile ID for easy reference
+        # cv2.putText(display_img, f"Tile {i}", (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+
+    # cv2.imshow('Detected Tile Bounding Boxes (Press Q or Esc to continue)', display_img)
+    #
+    # # Wait for key press. If 'q' or 'esc' is pressed, proceed.
+    # while True:
+    #     key = cv2.waitKey(1) & 0xFF
+    #     if key == ord('q') or key == 27:  # 27 is the ASCII for Esc
+    #         break
+    #
+    # cv2.destroyAllWindows()
