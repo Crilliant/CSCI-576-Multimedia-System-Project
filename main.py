@@ -4,7 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Tile import Tile
 from Pixel import Pixel
-from animation_generator import simulate_solve_puzzle, generate_puzzle_animation
+#from animation_generator import simulate_solve_puzzle, generate_puzzle_animation
+from solver import simulate_solve_puzzle
+from animation_generator import generate_puzzle_animation
+
 
 font = cv2.FONT_HERSHEY_COMPLEX
 
@@ -53,37 +56,35 @@ if __name__ == '__main__':
             # approximate borders
             approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
             sides = len(approx)
-            # if it is a square or rectangle draw the borders and print corner coordinates
-            if sides == 4:
-                # make into 1d array
-                n = approx.ravel()
-                cv2.drawContours(img, [contour], 0, (255, 255, 255), 2)
-                numOfTiles += 1
-                # print(f"tile {numOfTiles}:{n}")
-                coordinates = []
-                i = 0
-                cv2.putText(img, f"Tile {numOfTiles}", (n[0], n[1] + 20),
-                            font, 0.4, (0, 255, 255))
 
-                for j in n:
-                    if i % 2 == 0:
-                        # represent corner coordinates
-                        x, y = n[i], n[i + 1]
-                        coordinates.append((x, y))
-                        coord = f"({x}, {y})"
-                        cv2.putText(img, coord, (x, y), font, 0.4, (0, 255, 0))
-                        # print("tile ", numOfTiles, " corner coordinate: ", coord)
-                    i += 1
-                # for all pixels in the edge print the coordinates
+            if sides == 4:
+                # Flatten contour points
+                n = approx.ravel()
+                
+                # Get bounding rectangle
+                x, y, w, h = cv2.boundingRect(approx)
+                
+                # Crop the tile image from the original image
+                tile_img = img[y:y+h, x:x+w].copy()
+                
+                # Adjust coordinates relative to cropped tile
+                coordinates = [(pt[0] - x, pt[1] - y) for pt in approx.reshape(-1, 2)]
+                
+                # Collect edge pixels relative to the tile
                 pixels = []
                 for p in contour:
-                    x, y = p[0]
-                    color = img[y, x]
-                    pixel = Pixel(x, y, color[0], color[1], color[2])
-                    pixels.append(pixel)
-                    pix = f" edge pixels coordinates: ({x}, {y})"
-                    # print("tile ", numOfTiles, pix)
-                tiles.append(Tile(coordinates, pixels)) # list of all tiles with their coordinates and edges
+                    px, py = p[0]
+                    color = img[py, px]
+                    pixels.append(Pixel(px - x, py - y, color[0], color[1], color[2]))
+                
+                # Draw borders and labels (optional)
+                cv2.drawContours(img, [approx], 0, (255, 255, 255), 2)
+                numOfTiles += 1
+                cv2.putText(img, f"Tile {numOfTiles}", (n[0], n[1]+20), font, 0.4, (0, 255, 255))
+
+                # Create Tile object
+                tiles.append(Tile(corners=coordinates, edges=pixels, image=tile_img))
+
 
         print('Number of tiles found: ', numOfTiles)
         # cv2.imshow('image', img)
