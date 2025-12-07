@@ -6,6 +6,9 @@ class Tile:
             corners = []
         self.corners = corners
         self.edges = edges
+        self.image = image  
+        self.rotation = 0   
+        self.position = None 
 
         # Parameters for the animation
         self.initial_position = (0, 0)
