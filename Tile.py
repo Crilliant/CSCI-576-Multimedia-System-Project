@@ -1,5 +1,5 @@
 class Tile:
-    def __init__(self, corners=None, edges=None):
+    def __init__(self, corners=None, edges=None, image=None, rotation=0):
         if edges is None:
             edges = []
         if corners is None:
@@ -7,7 +7,7 @@ class Tile:
         self.corners = corners
         self.edges = edges
         self.image = image  
-        self.rotation = 0   
+        self.rotation = rotation
         self.position = None 
 
         # Parameters for the animation

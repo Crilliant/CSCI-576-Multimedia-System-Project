@@ -13,11 +13,22 @@ font = cv2.FONT_HERSHEY_COMPLEX
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    images = ["starry_night_translate.png", "starry_night_rotate.png", "starry_night_translate.rgb", "starry_night_rotate.rgb",
+    images = ["starry_night_rotate.png", "starry_night_translate.rgb",
+              "starry_night_rotate.rgb",
+              "starry_night_translate_irreg.png", "starry_night_rotate_irreg.png", "starry_night_translate_irreg.rgb",
+              "starry_night_rotate_irreg.rgb",
               "mona_lisa_translate.png", "mona_lisa_rotate.png", "mona_lisa_translate.rgb", "mona_lisa_rotate.rgb",
+              "mona_lisa_translate_irreg.png", "mona_lisa_rotate_irreg.png", "mona_lisa_translate_irreg.rgb",
+              "mona_lisa_rotate_irreg.rgb",
               "sample1_translate.png", "sample1_rotate.png", "sample1_translate.rgb", "sample1_rotate.rgb",
+              "sample1_translate_irreg.png", "sample1_rotate_irreg.png", "sample1_translate_irreg.rgb",
+              "sample1_rotate_irreg.rgb",
               "sample2_translate.png", "sample2_rotate.png", "sample2_translate.rgb", "sample2_rotate.rgb",
-              "sample3_translate.png", "sample3_rotate.png", "sample3_translate.rgb", "sample3_rotate.rgb"]
+              "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb",
+              "sample2_rotate_irreg.rgb",
+              "sample3_translate.png", "sample3_rotate.png", "sample3_translate.rgb", "sample3_rotate.rgb",
+              "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb",
+              "sample3_rotate_irreg.rgb"]
     # go through all images in the samples folder
     for image in images:
         print("Image: ", image)
@@ -60,30 +71,79 @@ if __name__ == '__main__':
             if sides == 4:
                 # Flatten contour points
                 n = approx.ravel()
-                
-                # Get bounding rectangle
                 x, y, w, h = cv2.boundingRect(approx)
-                
-                # Crop the tile image from the original image
-                tile_img = img[y:y+h, x:x+w].copy()
-                
+                rect = cv2.minAreaRect(approx)
+                (centerX, centerY), (width, height), angle = rect
+                angle = int(round(angle))
+                '''
+                tried to rotate another way with no success
+                if angle != 90:
+                    box = cv2.boxPoints(rect)
+                    box = np.intp(box)
+                    coords = sorted(box, key=lambda x: x[1])
+                    if coords[2][0] < coords[0][0]:
+                        angle += 90
+                    if angle < 90:
+                        rotation = -(90 - angle)
+                    elif angle > 90:
+                        rotation = (angle - 90)
+                    rotationMatrix = cv2.getRotationMatrix2D((centerX,centerY), rotation, 1)
+                    tile_img = cv2.warpAffine(img, rotationMatrix, (int(width), int(height)))
+                else:
+                    tile_img = img[y:y + h, x:x + w].copy()
+                '''
+                # upright angle should be either 0 or 90
+                if angle != 90 and angle != 0:
+                    box = cv2.boxPoints(rect)
+                    box = np.float32(box)
+                    coords = sorted(box, key=lambda x: x[1])
+                    if coords[2][0] < coords[0][0]:
+                        angle += 90
+                    # if tilted right adjust to left
+                    if 90 < angle and angle < 180 :
+                        transform = np.float32([[0, height - 1],
+                                      [0, 0],
+                                      [width - 1, 0],
+                                      [width - 1, height - 1]])
+                    elif 0 < angle and angle < 90:
+                        # else its tilted left so adjust to right
+                        transform = np.float32([[0, 0],
+                                    [width-1, 0],
+                                    [width-1, height-1],
+                                    [0, height-1]])
+                    # rotate rectangle at box points
+                    rotationMatrix = cv2.getPerspectiveTransform(box, transform)
+                    # flags and border changes the way the border is
+                    tile_img = cv2.warpPerspective(img, rotationMatrix, (int(width), int(height)), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+                    #cv2.imshow('rotated tile', tile_img)
+                    #cv2.waitKey(0)
+                    #cv2.destroyAllWindows()
+                    '''online says to use this for cordinates but doesnt seem to make much of a difference
+                    pts = cv2.perspectiveTransform(approx.reshape(-1, 1, 2).astype(np.float32), rotationMatrix)
+                    coordinates = [(int(pt[0][0]), int(pt[0][1])) for pt in pts]
+                    '''
+                    coordinates = [(pt[0] - x, pt[1] - y) for pt in approx.reshape(-1, 2)] # unsure if use this or above 2 lines
+                else:
+                    # Crop the tile image from the original image
+                    tile_img = img[y:y+h, x:x+w].copy()
+                    coordinates = [(pt[0] - x, pt[1] - y) for pt in approx.reshape(-1, 2)]
                 # Adjust coordinates relative to cropped tile
-                coordinates = [(pt[0] - x, pt[1] - y) for pt in approx.reshape(-1, 2)]
-                
+
+
                 # Collect edge pixels relative to the tile
                 pixels = []
                 for p in contour:
                     px, py = p[0]
                     color = img[py, px]
                     pixels.append(Pixel(px - x, py - y, color[0], color[1], color[2]))
-                
+
                 # Draw borders and labels (optional)
                 cv2.drawContours(img, [approx], 0, (255, 255, 255), 2)
                 numOfTiles += 1
                 cv2.putText(img, f"Tile {numOfTiles}", (n[0], n[1]+20), font, 0.4, (0, 255, 255))
 
                 # Create Tile object
-                tiles.append(Tile(corners=coordinates, edges=pixels, image=tile_img))
+                tiles.append(Tile(corners=coordinates, edges=pixels, image=tile_img, rotation=angle))
 
 
         print('Number of tiles found: ', numOfTiles)
