@@ -15,7 +15,7 @@ CANVAS_SIZE = (800, 800)  # Unified canvas size
 def generate_puzzle_animation(
         tiles: List[Tile],
         original_img: np.ndarray,
-        frame_count: int = 15,
+        frame_count: int = 30,
         output_filename: str = "puzzle_solution.gif",
 ):
     """
@@ -40,10 +40,10 @@ def generate_puzzle_animation(
 
     # print(f"Starting animation generation with {frame_count} frames...")
 
-    for f in range(1, frame_count + 1):
+    for f in range(0, frame_count + 1):
         # Calculate interpolation factor, from 0 to 1
-        # alpha = f / frame_count
-        alpha = (f - 1) / (frame_count - 1)
+        alpha = f / frame_count
+        # alpha = (f - 1) / (frame_count - 1)
 
         # Create a blank canvas (black background)
         canvas = np.zeros((H, W, 3), dtype=np.uint8)
@@ -63,6 +63,7 @@ def generate_puzzle_animation(
             x_end, y_end = tile.final_position
             angle_start = tile.initial_rotation
             angle_end = tile.final_rotation
+            # print(str(angle_start)+", "+str(angle_end))
 
             # Position interpolation
             x_curr = int(x_start * (1 - alpha) + x_end * alpha)
