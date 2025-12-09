@@ -12,22 +12,16 @@ font = cv2.FONT_HERSHEY_COMPLEX
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    images = ["starry_night_rotate.png", "starry_night_translate.rgb",
-              "starry_night_rotate.rgb",
-              "starry_night_translate_irreg.png", "starry_night_rotate_irreg.png", "starry_night_translate_irreg.rgb",
-              "starry_night_rotate_irreg.rgb",
+    images = ["starry_night_translate.png","starry_night_rotate.png", "starry_night_translate.rgb", "starry_night_rotate.rgb",
+              "starry_night_translate_irreg.png", "starry_night_rotate_irreg.png", "starry_night_translate_irreg.rgb", "starry_night_rotate_irreg.rgb",
               "mona_lisa_translate.png", "mona_lisa_rotate.png", "mona_lisa_translate.rgb", "mona_lisa_rotate.rgb",
-              "mona_lisa_translate_irreg.png", "mona_lisa_rotate_irreg.png", "mona_lisa_translate_irreg.rgb",
-              "mona_lisa_rotate_irreg.rgb",
+              "mona_lisa_translate_irreg.png", "mona_lisa_rotate_irreg.png", "mona_lisa_translate_irreg.rgb", "mona_lisa_rotate_irreg.rgb",
               "sample1_translate.png", "sample1_rotate.png", "sample1_translate.rgb", "sample1_rotate.rgb",
-              "sample1_translate_irreg.png", "sample1_rotate_irreg.png", "sample1_translate_irreg.rgb",
-              "sample1_rotate_irreg.rgb",
+              "sample1_translate_irreg.png", "sample1_rotate_irreg.png", "sample1_translate_irreg.rgb", "sample1_rotate_irreg.rgb",
               "sample2_translate.png", "sample2_rotate.png", "sample2_translate.rgb", "sample2_rotate.rgb",
-              "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb",
-              "sample2_rotate_irreg.rgb",
+              "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb", "sample2_rotate_irreg.rgb",
               "sample3_translate.png", "sample3_rotate.png", "sample3_translate.rgb", "sample3_rotate.rgb",
-              "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb",
-              "sample3_rotate_irreg.rgb"]
+              "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb", "sample3_rotate_irreg.rgb"]
     # go through all images in the samples folder
     for image in images:
         print("Image: ", image)
@@ -49,6 +43,7 @@ if __name__ == '__main__':
             img = cv2.imread(imagePath)
             if img is None:
                 raise ValueError("Unable to read png file: " + imagePath)
+
 
         # convert to grayscale to better find edges
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -78,24 +73,9 @@ if __name__ == '__main__':
                 # print(angle)
                 initial_position = (x, y)
                 initial_rotation = angle
+                width = int(width)
+                height = int(height)
 
-                '''
-                tried to rotate another way with no success
-                if angle != 90:
-                    box = cv2.boxPoints(rect)
-                    box = np.intp(box)
-                    coords = sorted(box, key=lambda x: x[1])
-                    if coords[2][0] < coords[0][0]:
-                        angle += 90
-                    if angle < 90:
-                        rotation = -(90 - angle)
-                    elif angle > 90:
-                        rotation = (angle - 90)
-                    rotationMatrix = cv2.getRotationMatrix2D((centerX,centerY), rotation, 1)
-                    tile_img = cv2.warpAffine(img, rotationMatrix, (int(width), int(height)))
-                else:
-                    tile_img = img[y:y + h, x:x + w].copy()
-                '''
                 # upright angle should be either 0 or 90
                 if angle != 90 and angle != 0:
                     box = cv2.boxPoints(rect)
@@ -115,17 +95,20 @@ if __name__ == '__main__':
                                     [width-1, 0],
                                     [width-1, height-1],
                                     [0, height-1]])
+
                     # rotate rectangle at box points
                     rotationMatrix = cv2.getPerspectiveTransform(box, transform)
-                    # flags and border changes the way the border is
-                    tile_img = cv2.warpPerspective(img, rotationMatrix, (int(width), int(height)), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
-                    #cv2.imshow('rotated tile', tile_img)
-                    #cv2.waitKey(0)
-                    #cv2.destroyAllWindows()
-                    '''online says to use this for cordinates but doesnt seem to make much of a difference
-                    pts = cv2.perspectiveTransform(approx.reshape(-1, 1, 2).astype(np.float32), rotationMatrix)
-                    coordinates = [(int(pt[0][0]), int(pt[0][1])) for pt in pts]
-                    '''
+
+                    # flags and border changes the way the border is, feel free to experiment with changes to those
+                    # these current settings seem to be th ebest
+                    tile_img = cv2.warpPerspective(img, rotationMatrix, (width, height),
+                                                   flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+                    # feather the border of tile to get rid of jagged edge aka delete 1 pixel border
+                    tile_img = tile_img[1:-1, 1:-1]
+
+                    # online says to use this for coordinates but doesnt seem to make much of a difference
+                    # pts = cv2.perspectiveTransform(approx.reshape(-1, 1, 2).astype(np.float32), rotationMatrix)
+                    # coordinates = [(int(pt[0][0]), int(pt[0][1])) for pt in pts]
                     coordinates = [(pt[0] - x, pt[1] - y) for pt in approx.reshape(-1, 2)] # unsure if use this or above 2 lines
                 else:
                     # Crop the tile image from the original image
@@ -161,11 +144,18 @@ if __name__ == '__main__':
         # cv2.destroyAllWindows()
 
         # =======Image Matching===========
-        simulate_solve_puzzle(tiles, img)  # TODO: this function needs to be rewrite
-
+        # I added the returning of the canvas so the name of the image can be printed above the picture displayed
+        _, finalImage = simulate_solve_puzzle(tiles, img)  # TODO: this function needs to be rewrite
+        name = image + " solution"
+        cv2.imshow(name, finalImage)
+        # # press q to quite the picture and go through next one
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        '''
         # # =======Animation Generation=======
         output_name = os.path.splitext(image)[0] + "_solution.gif"
         output_path = "outputs/"+output_name
         os.makedirs("outputs", exist_ok=True)
         print(output_name)
         generate_puzzle_animation(tiles, img, output_filename=output_path)
+        '''

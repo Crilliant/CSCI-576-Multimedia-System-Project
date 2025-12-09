@@ -215,9 +215,13 @@ def simulate_solve_puzzle(tiles, img):
 
         resized_tile = cv2.resize(tile.image, (tile_w, tile_h))
         canvas[y_start:y_end, x_start:x_end] = resized_tile
-
+        #possible blurring one or the other
+        #canvas = cv2.GaussianBlur(canvas, (3, 3), 0)
+        #canvas = cv2.medianBlur(canvas, 3, 0)
+    '''
+    I return canvas so the name of the image can be printed in main
     cv2.imshow("Puzzle Solution", canvas)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    return assembled_tiles
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+    '''
+    return assembled_tiles, canvas
