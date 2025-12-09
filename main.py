@@ -131,7 +131,7 @@ if __name__ == '__main__':
 
                 # Create Tile object
                 tile = Tile(corners=coordinates, edges=pixels, image=tile_img, rotation=angle)
-                tile.initial_rotation = angle
+                tile.initial_rotation = 0
                 tile.initial_position = (x, y)
                 # tile.extracted_img = tile_img.copy()
                 tiles.append(tile)
@@ -151,11 +151,10 @@ if __name__ == '__main__':
         # # press q to quite the picture and go through next one
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        '''
+
         # # =======Animation Generation=======
         output_name = os.path.splitext(image)[0] + "_solution.gif"
         output_path = "outputs/"+output_name
         os.makedirs("outputs", exist_ok=True)
         print(output_name)
         generate_puzzle_animation(tiles, img, output_filename=output_path)
-        '''
