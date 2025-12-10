@@ -71,8 +71,8 @@ if __name__ == '__main__':
                 # print(angle)
                 angle = int(round(angle))
                 # print(angle)
-                initial_position = (x, y)
-                initial_rotation = angle
+                # initial_position = (x, y)
+                # initial_rotation = angle
                 width = int(width)
                 height = int(height)
 
@@ -131,9 +131,12 @@ if __name__ == '__main__':
 
                 # Create Tile object
                 tile = Tile(corners=coordinates, edges=pixels, image=tile_img, rotation=angle)
-                tile.initial_rotation = 0
+                tile.initial_rotation = angle
                 tile.initial_position = (x, y)
-                # tile.extracted_img = tile_img.copy()
+                mask = cv2.cvtColor(tile_img, cv2.COLOR_BGR2GRAY)
+                _, mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)
+                tile.mask = mask
+
                 tiles.append(tile)
 
 

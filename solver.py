@@ -137,12 +137,6 @@ def assemble_puzzle_global(tiles, matches):
     for idx, (x, y) in normalized_positions.items():
         grid[y][x] = tiles[idx]
 
-    # --- Build grid for convenience ---
-    max_x = max(x for x, y in normalized_positions.values())
-    max_y = max(y for x, y in normalized_positions.values())
-    grid = [[None for _ in range(max_x + 1)] for _ in range(max_y + 1)]
-    for idx, (x, y) in normalized_positions.items():
-        grid[y][x] = tiles[idx]
 
     # --- Compute cell pixel sizes per column/row to handle varying tile sizes ---
     col_widths = {}
