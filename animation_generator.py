@@ -15,7 +15,7 @@ CANVAS_SIZE = (800, 800)  # Unified canvas size
 def generate_puzzle_animation(
         tiles: List[Tile],
         original_img: np.ndarray,
-        frame_count: int = 15,
+        frame_count: int = 50,
         output_filename: str = "puzzle_solution.gif",
 ):
     """
@@ -71,26 +71,75 @@ def generate_puzzle_animation(
             # Angle interpolation
             angle_curr = angle_start * (1 - alpha) + angle_end * alpha
 
-            # --- 2. Apply rotation and affine transformation ---
+            # --- 2. Apply rotation + mask ---
 
+            # 1. get tile image and mask
+            tile_img = tile.image
+            mask = tile.mask
+
+            img_h, img_w = tile_img.shape[:2]
             center = (img_w / 2, img_h / 2)
-            M_rot = cv2.getRotationMatrix2D(center, angle_curr, 1.0)
-            rotated_tile = cv2.warpAffine(tile_img, M_rot, (img_w, img_h),
-                                          borderValue=(0,0,0))
 
-            # --- 3. Place the puzzle piece onto the canvas ---
+            M_rot = cv2.getRotationMatrix2D(center, angle_curr, 1.0)
+
+            # compute new bounding box
+            abs_cos = abs(M_rot[0, 0])  # cos theta
+            abs_sin = abs(M_rot[0, 1])  # sin theta
+            new_w = int(img_h * abs_sin + img_w * abs_cos)  # bounding box
+            new_h = int(img_h * abs_cos + img_w * abs_sin)
+
+            # adjust matrix translation
+            M_rot[0, 2] += new_w / 2 - center[0]
+            M_rot[1, 2] += new_h / 2 - center[1]
+
+            # rotate tile and mask
+            rotated_tile = cv2.warpAffine(tile_img, M_rot, (new_w, new_h), borderValue=(0, 0, 0))
+            rotated_mask = cv2.warpAffine(mask, M_rot, (new_w, new_h), borderValue=0)
+
+            # --- 3. Alpha blending onto canvas ---
 
             x1, y1 = x_curr, y_curr
-            x2, y2 = x_curr + img_w, y_curr + img_h
+            x2, y2 = x_curr + new_w, y_curr + new_h
 
-            # Boundary check
-            x2 = min(x2, W)
-            y2 = min(y2, H)
+            # boundary clamp
+            x1_clamped = max(x1, 0)
+            y1_clamped = max(y1, 0)
+            x2_clamped = min(x2, W)
+            y2_clamped = min(y2, H)
 
-            if x2 > x1 and y2 > y1 and x1 >= 0 and y1 >= 0:
-                source_img = rotated_tile[0:y2 - y1, 0:x2 - x1]
-                # Place onto the canvas
-                canvas[y1:y2, x1:x2] = source_img
+            if x1_clamped < x2_clamped and y1_clamped < y2_clamped:
+                # crop source if needed
+                sx1 = x1_clamped - x1
+                sy1 = y1_clamped - y1
+                sx2 = sx1 + (x2_clamped - x1_clamped)
+                sy2 = sy1 + (y2_clamped - y1_clamped)
+
+                src = rotated_tile[sy1:sy2, sx1:sx2]
+                m = rotated_mask[sy1:sy2, sx1:sx2] / 255.0
+                m = m[:, :, None]
+
+                canvas[y1_clamped:y2_clamped, x1_clamped:x2_clamped] = (
+                        src * m + canvas[y1_clamped:y2_clamped, x1_clamped:x2_clamped] * (1 - m)
+                ).astype(np.uint8)
+
+            # center = (img_w / 2, img_h / 2)
+            # M_rot = cv2.getRotationMatrix2D(center, angle_curr, 1.0)
+            # rotated_tile = cv2.warpAffine(tile_img, M_rot, (img_w, img_h),
+            #                               borderValue=(0,0,0))
+            #
+            # # --- 3. Place the puzzle piece onto the canvas ---
+            #
+            # x1, y1 = x_curr, y_curr
+            # x2, y2 = x_curr + img_w, y_curr + img_h
+            #
+            # # Boundary check
+            # x2 = min(x2, W)
+            # y2 = min(y2, H)
+            #
+            # if x2 > x1 and y2 > y1 and x1 >= 0 and y1 >= 0:
+            #     source_img = rotated_tile[0:y2 - y1, 0:x2 - x1]
+            #     # Place onto the canvas
+            #     canvas[y1:y2, x1:x2] = source_img
 
         # Convert to RGB (imageio requires RGB order)
         frame_rgb = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)

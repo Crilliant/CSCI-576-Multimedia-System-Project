@@ -15,7 +15,7 @@ class Tile:
         self.final_position = (0, 0)
         self.initial_rotation = 0
         self.final_rotation = 0
-        # self.extracted_img = None  # 裁剪出的拼图块图像数据 (np.ndarray)
+        self.mask = None
 
         @property
         def x(self):
