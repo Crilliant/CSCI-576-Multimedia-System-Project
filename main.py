@@ -12,16 +12,23 @@ font = cv2.FONT_HERSHEY_COMPLEX
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    images = ["starry_night_translate.png","starry_night_rotate.png", "starry_night_translate.rgb", "starry_night_rotate.rgb",
-              "starry_night_translate_irreg.png", "starry_night_rotate_irreg.png", "starry_night_translate_irreg.rgb", "starry_night_rotate_irreg.rgb",
-              "mona_lisa_translate.png", "mona_lisa_rotate.png", "mona_lisa_translate.rgb", "mona_lisa_rotate.rgb",
-              "mona_lisa_translate_irreg.png", "mona_lisa_rotate_irreg.png", "mona_lisa_translate_irreg.rgb", "mona_lisa_rotate_irreg.rgb",
-              "sample1_translate.png", "sample1_rotate.png", "sample1_translate.rgb", "sample1_rotate.rgb",
-              "sample1_translate_irreg.png", "sample1_rotate_irreg.png", "sample1_translate_irreg.rgb", "sample1_rotate_irreg.rgb",
-              "sample2_translate.png", "sample2_rotate.png", "sample2_translate.rgb", "sample2_rotate.rgb",
-              "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb", "sample2_rotate_irreg.rgb",
+    # images = ["starry_night_translate.png","starry_night_rotate.png", "starry_night_translate.rgb", "starry_night_rotate.rgb",
+    #           "starry_night_translate_irreg.png", "starry_night_rotate_irreg.png", "starry_night_translate_irreg.rgb", "starry_night_rotate_irreg.rgb",
+    #           "mona_lisa_translate.png", "mona_lisa_rotate.png", "mona_lisa_translate.rgb", "mona_lisa_rotate.rgb",
+    #           "mona_lisa_translate_irreg.png", "mona_lisa_rotate_irreg.png", "mona_lisa_translate_irreg.rgb", "mona_lisa_rotate_irreg.rgb",
+    #           "sample1_translate.png", "sample1_rotate.png", "sample1_translate.rgb", "sample1_rotate.rgb",
+    #           "sample1_translate_irreg.png", "sample1_rotate_irreg.png", "sample1_translate_irreg.rgb", "sample1_rotate_irreg.rgb",
+    #           "sample2_translate.png", "sample2_rotate.png", "sample2_translate.rgb", "sample2_rotate.rgb",
+    #           "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb", "sample2_rotate_irreg.rgb",
+    #           "sample3_translate.png", "sample3_rotate.png", "sample3_translate.rgb", "sample3_rotate.rgb",
+    #           "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb", "sample3_rotate_irreg.rgb"]
+    images = ["sample3_rotate.png", "sample2_rotate.png", "sample2_translate.rgb", "sample2_rotate.rgb",
+              "sample2_translate_irreg.png", "sample2_rotate_irreg.png", "sample2_translate_irreg.rgb",
+              "sample2_rotate_irreg.rgb",
               "sample3_translate.png", "sample3_rotate.png", "sample3_translate.rgb", "sample3_rotate.rgb",
-              "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb", "sample3_rotate_irreg.rgb"]
+              "sample3_translate_irreg.png", "sample3_rotate_irreg.png", "sample3_translate_irreg.rgb",
+              "sample3_rotate_irreg.rgb"]
+
     # go through all images in the samples folder
     for image in images:
         print("Image: ", image)
@@ -68,11 +75,7 @@ if __name__ == '__main__':
                 x, y, w, h = cv2.boundingRect(approx)
                 rect = cv2.minAreaRect(approx)
                 (centerX, centerY), (width, height), angle = rect
-                # print(angle)
                 angle = int(round(angle))
-                # print(angle)
-                # initial_position = (x, y)
-                # initial_rotation = angle
                 width = int(width)
                 height = int(height)
 
@@ -129,10 +132,12 @@ if __name__ == '__main__':
                 numOfTiles += 1
                 cv2.putText(img, f"Tile {numOfTiles}", (n[0], n[1]+20), font, 0.4, (0, 255, 255))
 
-                # Create Tile object
-                tile = Tile(corners=coordinates, edges=pixels, image=tile_img, rotation=angle)
+                tile = Tile(corners=coordinates,
+                            edges=pixels,
+                            image=tile_img,
+                            rotation=angle)
                 tile.initial_rotation = angle
-                tile.initial_position = (x, y)
+                tile.initial_position = (centerX, centerY)
                 mask = cv2.cvtColor(tile_img, cv2.COLOR_BGR2GRAY)
                 _, mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)
                 tile.mask = mask

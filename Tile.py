@@ -10,8 +10,7 @@ class Tile:
         self.rotation = rotation
         self.position = None 
 
-        # Parameters for the animation
-        self.initial_position = (0, 0)
+        self.initial_position = (0, 0)  # (x, y) for the center of tile
         self.final_position = (0, 0)
         self.initial_rotation = 0
         self.final_rotation = 0

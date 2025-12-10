@@ -169,20 +169,18 @@ def assemble_puzzle_global(tiles, matches):
         row_y[r] = cur_y
         cur_y += row_heights[r]
 
-    # Now set final_position (pixel coordinates, top-left) for every tile,
+    # Now set final_position (pixel coordinates, center) for every tile,
     # center each tile inside its cell if its size < cell size.
     for idx, (col, row) in normalized_positions.items():
         cell_w = col_widths[col]
         cell_h = row_heights[row]
-        tile_h, tile_w = tiles[idx].image.shape[:2]
 
-        tx = col_x[col] + (cell_w - tile_w) // 2
-        ty = row_y[row] + (cell_h - tile_h) // 2
+        cx = col_x[col] + cell_w / 2
+        cy = row_y[row] + cell_h / 2
 
-        tiles[idx].final_position = (int(tx), int(ty))
+        tiles[idx].final_position = (cx, cy)
 
-        # set final_rotation if desired (default 0 -- upright)
-        tiles[idx].final_rotation = 0
+        tiles[idx].final_rotation = 0  #TODO: It is a default value now
 
     return tiles, grid, max_y+1, max_x+1
 
