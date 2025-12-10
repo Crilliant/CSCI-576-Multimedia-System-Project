@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
         # =======Image Matching===========
         # I added the returning of the canvas so the name of the image can be printed above the picture displayed
-        _, finalImage = simulate_solve_puzzle(tiles, img)  # TODO: this function needs to be rewrite
+        _, finalImage = simulate_solve_puzzle(tiles, img)
         name = image + " solution"
         cv2.imshow(name, finalImage)
         # # press q to quite the picture and go through next one
