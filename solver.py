@@ -179,8 +179,7 @@ def assemble_puzzle_global(tiles, matches):
         cy = row_y[row] + cell_h / 2
 
         tiles[idx].final_position = (cx, cy)
-
-        tiles[idx].final_rotation = 0  #TODO: It is a default value now
+        tiles[idx].final_rotation = 0  # TODO: It is a default value now
 
     return tiles, grid, max_y+1, max_x+1
 
