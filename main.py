@@ -131,7 +131,7 @@ if __name__ == '__main__':
                             edges=pixels,
                             image=tile_img,
                             rotation=angle)
-                tile.initial_rotation = angle
+                tile.initial_rotation = angle-90
                 tile.initial_position = (centerX, centerY)
                 mask = cv2.cvtColor(tile_img, cv2.COLOR_BGR2GRAY)
                 _, mask = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)

@@ -15,7 +15,7 @@ CANVAS_SIZE = (800, 800)  # Unified canvas size
 def generate_puzzle_animation(
         tiles: List[Tile],
         original_img: np.ndarray,
-        frame_count: int = 50,
+        frame_count: int = 30,
         output_filename: str = "puzzle_solution.gif",
 ):
     """
